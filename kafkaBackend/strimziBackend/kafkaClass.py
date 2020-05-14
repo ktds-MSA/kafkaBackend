@@ -86,7 +86,15 @@ class KafkaTopic(Strimzi):
                                                                  self._plural, name)
         return api_response
 
-    def createOrUpdate(self):
+    def create(self):
+        # make body from template
+        self._body = self.templateRender(name="maked-topic",namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
+
+        api_response = self._client.create_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, self._body)
+        # update need to get and change values
+        return api_response
+
+    def update(self):
         # make body from template
         self._body = self.templateRender(name="maked-topic",namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
 
