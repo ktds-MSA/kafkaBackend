@@ -2,6 +2,7 @@ import json
 from abc import *
 from string import Template
 
+from kubernetes.client.rest import ApiException
 from kubernetes import client, config
 from pprint import pprint
 import kubernetes
@@ -23,7 +24,11 @@ class Strimzi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def createOrUpdate(self):
+    def create(self, name):
+        pass
+
+    @abstractmethod
+    def update(self):
         pass
 
     @abstractmethod
@@ -49,6 +54,7 @@ class KafkaTopic(Strimzi):
         ex) '{"name":"feel", "namespace":"${namespace}"}'
     치환될 변수는 $ 달러 표시로 변수 임을 명시한다. 
     """
+
     _template ="""{
             "apiVersion": "kafka.strimzi.io/v1beta1",
             "kind": "KafkaTopic",
@@ -82,27 +88,40 @@ class KafkaTopic(Strimzi):
         self._client = client.CustomObjectsApi()
 
     def get(self, name):
-        api_response = self._client.get_namespaced_custom_object(self._group, self._version, self._namespace,
+        try:
+            api_response = self._client.get_namespaced_custom_object(self._group, self._version, self._namespace,
                                                                  self._plural, name)
+        except ApiException as e:
+            print("Exception during get kafka topics %s\n" % e)
+            api_response = {"errorCode": str(e)}
         return api_response
 
-    def create(self):
+    def create(self, name):
         # make body from template
-        self._body = self.templateRender(name="maked-topic",namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
-
-        api_response = self._client.create_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, self._body)
+        try:
+            self._body = self.templateRender(name=name,namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
+            api_response = self._client.create_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, self._body)
+        except ApiException as e:
+            print("Exception during create kafka topics %s\n" % e)
+            api_response = {"errorCode": str(e)}
         # update need to get and change values
         return api_response
 
     def update(self):
         # make body from template
-        self._body = self.templateRender(name="maked-topic",namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
-
-        api_response = self._client.create_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, self._body)
+        try:
+            self._body = self.templateRender(name="maked-topic",namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
+            api_response = self._client.create_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, self._body)
+        except ApiException as e:
+            print("Exception during update kafka topics %s\n" % e)
+            api_response = {"errorCode": str(e)}
         # update need to get and change values
         return api_response
 
     def delete(self ,name):
-        api_response = self._client.delete_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, name)
-
+        try:
+            api_response = self._client.delete_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, name)
+        except ApiException as e:
+            print("Exception during delete kafka topics %s\n" % e)
+            api_response = {"errorCode": str(e)}
         return api_response
