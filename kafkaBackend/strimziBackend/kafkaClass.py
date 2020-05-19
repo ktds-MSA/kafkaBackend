@@ -98,10 +98,12 @@ class KafkaTopic(Strimzi):
             api_response = {"errorCode": str(e)}
         return api_response
 
-    def create(self, name):
+    def create(self, name, namespace, cluster, partition, replicas):
         # make body from template
         try:
-            self._body = self.templateRender(name=name,namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
+            #self._body = self.templateRender(name=name,namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
+            self._body = self.templateRender(name=name, namespace=namespace, cluster=cluster, partitions=partition,
+                                             replicas=replicas)
             api_response = self._client.create_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, self._body)
         except ApiException as e:
             print("Exception during create kafka topics %s\n" % e)

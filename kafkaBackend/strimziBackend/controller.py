@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-
+import json
 from .kafkaClass import KafkaTopic
 
 def kafkatopicGet(request,context, namespace, name):
@@ -12,7 +12,8 @@ def kafkatopicGet(request,context, namespace, name):
 @csrf_exempt
 def kafkatopicCreate(request, context, namespace, name):
     if request.method == "POST":
-        result = KafkaTopic(context,namespace).create(name)
+        received_json_data = json.loads(request.body)
+        result = KafkaTopic(context,namespace).create(name, received_json_data['namespace'], received_json_data['cluster'], received_json_data['partition'],received_json_data['replicas'])
         return JsonResponse(result)
 
 @csrf_exempt
