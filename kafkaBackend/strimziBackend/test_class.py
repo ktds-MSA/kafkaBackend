@@ -6,16 +6,16 @@ from pprint import pprint
 
 class TestKafkaTopic(TestCase):
     def test_create(self):
-        c = KafkaTopic('kafka').create('my-topic')
+        c = KafkaTopic('docker-for-desktop','kafka').create('my-topic')
         pprint(c)
 
     def test_get(self):
-        c = KafkaTopic('kafka').get('my-topic')
+        c = KafkaTopic('docker-for-desktop','kafka').get('my-topic')
         self.assertIsNotNone(c)
         pprint(c)
 
     def test_delete(self):
-        c = KafkaTopic('kafka').delete('my-topic')
+        c = KafkaTopic('docker-for-desktop','kafka').delete('my-topic')
         pprint(c)
 
 if __name__ == '__main__':

@@ -16,7 +16,7 @@ class Strimzi(metaclass=ABCMeta):
     _body = ''
     _name = ''
 
-    def __init__(self):
+    def __init__(self, context, namespace):
         pass
 
     @abstractmethod
@@ -28,11 +28,11 @@ class Strimzi(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def update(self):
+    def update(self, name):
         pass
 
     @abstractmethod
-    def delete(self):
+    def delete(self, name):
         pass
 
     def templateRender(self,*args, **kwargs):
@@ -81,11 +81,13 @@ class KafkaTopic(Strimzi):
     _name = ''
     _client = None
 
-    def __init__(self, namespace):
+    def __init__(self, context, namespace):
         self._namespace = namespace
         # set kubernetes client
         config.load_kube_config()
+        config.new_client_from_config(context=context)
         self._client = client.CustomObjectsApi()
+
 
     def get(self, name):
         try:
@@ -107,7 +109,7 @@ class KafkaTopic(Strimzi):
         # update need to get and change values
         return api_response
 
-    def update(self):
+    def update(self, name):
         # make body from template
         try:
             self._body = self.templateRender(name="maked-topic",namespace="kafka",cluster="my-cluster",partitions=2,replicas=1)
@@ -118,7 +120,7 @@ class KafkaTopic(Strimzi):
         # update need to get and change values
         return api_response
 
-    def delete(self ,name):
+    def delete(self, name):
         try:
             api_response = self._client.delete_namespaced_custom_object(self._group, self._version, self._namespace, self._plural, name)
         except ApiException as e:
